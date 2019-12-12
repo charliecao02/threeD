@@ -20,8 +20,8 @@ class Bullet {
   }
   
   void act() {
-     x = x + vx;
-     z = z + vz;
+     x = x + 2*vx;
+     z = z + 2*vz;
   }
   
 }

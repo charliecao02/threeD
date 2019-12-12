@@ -1,7 +1,8 @@
 ArrayList<Bullet> bullets;
 ArrayList<Snow> snow;
 //keyboard interaction
-boolean up, down, left, right;
+boolean up, down, left, right, space=false;
+int vy=0;
 
 //World manipulation
 int bs = 100;
@@ -36,32 +37,32 @@ void setup() {
   textureMode(NORMAL);
 
   //load map
-  map         = loadImage("map.png");
-  
+  map = loadImage("map.png");
+
   bullets = new ArrayList<Bullet>();
   snow=new ArrayList<Snow>();
-  
-  for(int i=0;i<10;i++){
-     snow.add(new Snow(random(-width*10,width*10), -5000.0,random(-width*10,width*10), 10)) ;
-  }
 }
 
 void draw() {
-  background(0);
-
-  for(int i=0;i<10;i++){
-     snow.add(new Snow(random(-width*10,width*10), -5000.0,random(-width*10,width*10), 10)) ;
+  background(128);
+  
+  snow.add(new Snow(random(-width*5, width*5), -5000.0, random(-width*5, width*5), 5, random(0,360) ));
+  int i1 = 0;
+  while (i1 < snow.size()) {
+    Snow s = snow.get(i1);
+    if(s.melted()==true) snow.remove(i1);
+    i1++;
   }
-
+  
   float dx = lx+ xzDirection.x;
   float dy = ly+ xyDirection.y;
   float dz = xzDirection.y+lz;
-  camera(lx,ly,lz,   dx, dy, dz,   0, 1, 0); 
+  camera(lx, ly, lz, dx, dy, dz, 0, 1, 0); 
   xzDirection.rotate(leftRightHeadAngle);
   xyDirection.rotate(upDownHeadAngle);
   leftRightHeadAngle = -(pmouseX - mouseX) * 0.01;
   upDownHeadAngle    = -(pmouseY - mouseY) * 0.01;
-  
+
   //headAngle = headAngle + 0.01;
 
   strafeDir = xzDirection.copy();
@@ -83,33 +84,43 @@ void draw() {
     lx = lx + strafeDir.x;
     lz = lz + strafeDir.y;
   }
-  
+
+  //jumping
+  println(ly, vy, space);
+  if (ly>0) {
+    ly=0; 
+    vy=0;
+  }// doesn't fall through ground
+  if (space && ly<=15) {
+    vy=20;
+    space=false;
+  }
+  ly-=vy;
+  if(ly<0) vy--;
+
   //direction.rotate(-(pmouseX - mouseX) * 0.01);
 
   drawMap();
   drawFloor();  
-  
-  //drawBullets();
-  
-  bullets.add(new Bullet(lx, ly, lz, xzDirection.x, xzDirection.y));
-  
+
+  drawBullets();
+
   drawSnow();
-  
 }
 
 void drawBullets() {
   int i = 0;
   while (i < bullets.size()) {
-     Bullet b = bullets.get(i);
-     b.act();
-     b.show();
-     i++;
-  } 
+    Bullet b = bullets.get(i);
+    b.act();
+    b.show();
+    i++;
+  }
 }
 
-void drawSnow(){
+void drawSnow() {
   int i=0;
-  while(i<snow.size()){
+  while (i<snow.size()) {
     Snow s=snow.get(i);
     s.act();
     s.show();
@@ -160,88 +171,4 @@ void drawMap() {
       mapY++;   //go down to the next row
     }
   }
-}
-
-void texturedBox(PImage top, PImage side, PImage bottom, float x, float y, float z, float size) {
-  pushMatrix();
-  translate(x, y, z);
-  scale(size);
-
-  //rotateX(rotx);
-  //rotateY(roty);
-
-  beginShape(QUADS);
-  noStroke();
-  texture(side);
-
-  // +Z Front Face
-  vertex(-1, -1, 1, 0, 0);
-  vertex( 1, -1, 1, 1, 0);
-  vertex( 1, 1, 1, 1, 1);
-  vertex(-1, 1, 1, 0, 1);
-
-  // -Z Back Face
-  vertex(-1, -1, -1, 0, 0);
-  vertex( 1, -1, -1, 1, 0);
-  vertex( 1, 1, -1, 1, 1);
-  vertex(-1, 1, -1, 0, 1);
-
-  // +X Side Face
-  vertex(1, -1, 1, 0, 0);
-  vertex(1, -1, -1, 1, 0);
-  vertex(1, 1, -1, 1, 1);
-  vertex(1, 1, 1, 0, 1);
-
-  // -X Side Face
-  vertex(-1, -1, 1, 0, 0);
-  vertex(-1, -1, -1, 1, 0);
-  vertex(-1, 1, -1, 1, 1);
-  vertex(-1, 1, 1, 0, 1);
-
-  endShape();
-
-  beginShape();
-  texture(bottom);
-
-  // +Y Bottom Face
-  vertex(-1, 1, -1, 0, 0);
-  vertex( 1, 1, -1, 1, 0);
-  vertex( 1, 1, 1, 1, 1);
-  vertex(-1, 1, 1, 0, 1);
-
-  endShape();
-
-  beginShape();
-  texture(top);
-
-  // -Y Top Face
-  vertex(-1, -1, -1, 0, 0);
-  vertex( 1, -1, -1, 1, 0);
-  vertex( 1, -1, 1, 1, 1);
-  vertex(-1, -1, 1, 0, 1);
-
-  endShape();
-
-  popMatrix();
-}
-
-void keyPressed() {
-  if (key == 'w')    up = true;
-  if (key == 's')  down = true;
-  if (key == 'a')  left = true;
-  if (key == 'd') right = true;
-}
-
-void keyReleased() {
-  if (key == 'w')    up = false;
-  if (key == 's')  down = false;
-  if (key == 'a')  left = false;
-  if (key == 'd') right = false;
-}
-
-void mouseDragged() {
-  
-  
-//  rotx = rotx + (pmouseY - mouseY) * 0.01;
-//  roty = roty - (pmouseX - mouseX) * 0.01;
 }
