@@ -12,7 +12,8 @@ class Snow {
   void show() {
 
     pushMatrix();
-    translate(x, y, z);                                                
+    translate(x, y, z);  
+    fill(255,255,255);
     box(10);
     popMatrix();
   }

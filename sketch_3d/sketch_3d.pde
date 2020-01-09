@@ -1,5 +1,7 @@
 ArrayList<Bullet> bullets;
 ArrayList<Snow> snow;
+ArrayList<FireworksUp> fwkup;
+ArrayList<FireworksXZ> fwkxz;
 //keyboard interaction
 boolean up, down, left, right, space=false;
 int vy=0;
@@ -39,19 +41,41 @@ void setup() {
   //load map
   map = loadImage("map.png");
 
-  bullets = new ArrayList<Bullet>();
-  snow=new ArrayList<Snow>();
+  bullets = new ArrayList<Bullet>(10000);
+  snow= new ArrayList<Snow>(10000);
+  fwkup = new ArrayList<FireworksUp>(10000);
+  fwkxz = new ArrayList<FireworksXZ>(10000);
 }
 
 void draw() {
   background(128);
   
-  snow.add(new Snow(random(-width*5, width*5), -5000.0, random(-width*5, width*5), 5, random(0,360) ));
+  snow.add(new Snow(random(-width*5, width*5), -5000.0, random(-width*5, width*5), random(5,10), random(0,360) ));
+  fwkup.add(new FireworksUp(random(-width*5, width*5), bs, random(-width*5, width*5), 20 ));
   int i1 = 0;
   while (i1 < snow.size()) {
     Snow s = snow.get(i1);
     if(s.melted()==true) snow.remove(i1);
-    i1++;
+    else i1++;
+  }
+  
+  int i2 = 0;
+  while (i2 < fwkup.size()) {
+    FireworksUp f1 = fwkup.get(i2);
+    if(f1.exploded()==true) {
+      for(int a=0;a<100;a++){
+        fwkxz.add(new FireworksXZ(f1.x, -3000, f1.z, 30, random(0,360) ));
+      }
+      fwkup.remove(i2);
+    }
+    else i2++;
+  }
+  
+  int i3 = 0;
+  while (i3 < fwkxz.size()) {
+    FireworksXZ f2 = fwkxz.get(i3);
+    if(f2.gone()==true) fwkxz.remove(i3);
+    else i3++;
   }
   
   float dx = lx+ xzDirection.x;
@@ -86,7 +110,6 @@ void draw() {
   }
 
   //jumping
-  println(ly, vy, space);
   if (ly>0) {
     ly=0; 
     vy=0;
@@ -106,6 +129,10 @@ void draw() {
   drawBullets();
 
   drawSnow();
+  
+  drawFireworksUp();
+  
+  drawFireworksXZ();
 }
 
 void drawBullets() {
@@ -124,6 +151,26 @@ void drawSnow() {
     Snow s=snow.get(i);
     s.act();
     s.show();
+    i++;
+  }
+}
+
+void drawFireworksUp() {
+  int i=0;
+  while (i<fwkup.size()) {
+    FireworksUp f1=fwkup.get(i);
+    f1.act();
+    f1.show();
+    i++;
+  }
+}
+
+void drawFireworksXZ() {
+  int i=0;
+  while (i<fwkxz.size()) {
+    FireworksXZ f2=fwkxz.get(i);
+    f2.act();
+    f2.show();
     i++;
   }
 }
